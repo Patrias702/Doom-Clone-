@@ -1,12 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Mini DOOM Clone</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>DOOM Clone</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: monospace;
+      background-color: #000;
+      color: #fff;
+      overflow: hidden;
+    }
+    #gameContainer {
+      width: 800px;
+      height: 600px;
+      margin: 40px auto;
+      background: #111;
+      border: 4px solid #f00;
+      position: relative;
+    }
+    #player {
+      width: 40px;
+      height: 40px;
+      background: lime;
+      position: absolute;
+      left: 380px;
+      top: 280px;
+    }
+    .hud {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.7);
+    }
+    .bar {
+      height: 20px;
+      margin: 5px 0;
+    }
+    .healthBar {
+      background: red;
+      width: 100%;
+    }
+    .ammoBar {
+      background: yellow;
+      width: 100%;
+    }
+    #log {
+      margin-top: 10px;
+      height: 100px;
+      overflow-y: auto;
+      background: #222;
+      padding: 5px;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="640" height="480"></canvas>
-  <script src="game.js"></script>
+  <div id="gameContainer">
+    <div id="player"></div>
+    <div class="hud">
+      <div>Health:</div>
+      <div class="bar healthBar" id="healthBar"></div>
+      <div>Ammo:</div>
+      <div class="bar ammoBar" id="ammoBar"></div>
+      <div id="log"></div>
+    </div>
+  </div>
+
+  <script>
+    const player = {
+      health: 100,
+      ammo: 10,
+      x: 380,
+      y: 280,
+      speed: 10
+    };
+
+    const playerElement = document.getElementById("player");
+
+    function log(msg) {
+      const logBox = document.getElementById("log");
+      logBox.innerHTML += `> ${msg}<br>`;
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function updateHUD() {
+      document.getElementById("healthBar").style.width = `${player.health}%`;
+      document.getElementById("ammoBar").style.width = `${player.ammo * 10}%`;
+    }
+
+    function updatePlayerPosition() {
+      playerElement.style.left = `${player.x}px`;
+      playerElement.style.top = `${player.y}px`;
+    }
+
+    function shoot() {
+      if (player.ammo > 0) {
+        player.ammo--;
+        log("Player fired a shot!");
+      } else {
+        log("Out of ammo! Reload with R.");
+      }
+      updateHUD();
+    }
+
+    function reload() {
+      player.ammo = 10;
+      log("Reloaded!");
+      updateHUD();
+    }
+
+    function damage(amount) {
+      player.health -= amount;
+      if (player.health <= 0) {
+        player.health = 0;
+        log("Player is dead. GAME OVER.");
+      } else {
+        log(`Player took ${amount} damage.`);
+      }
+      updateHUD();
+    }
+
+    function pickup(item) {
+      if (item === 'medkit') {
+        player.health = Math.min(100, player.health + 30);
+        log("Picked up medkit!");
+      } else if (item === 'ammo') {
+        player.ammo = Math.min(10, player.ammo + 5);
+        log("Picked up ammo!");
+      }
+      updateHUD();
+    }
+
+    document.addEventListener("keydown", (e) => {
+      switch (e.key.toLowerCase()) {
+        case ' ':
+          shoot();
+          break;
+        case 'r':
+          reload();
+          break;
+        case 'h':
+          damage(10);
+          break;
+        case 'm':
+          pickup('medkit');
+          break;
+        case 'a':
+          pickup('ammo');
+          break;
+        case 'arrowup':
+          player.y = Math.max(0, player.y - player.speed);
+          break;
+        case 'arrowdown':
+          player.y = Math.min(560, player.y + player.speed);
+          break;
+        case 'arrowleft':
+          player.x = Math.max(0, player.x - player.speed);
+          break;
+        case 'arrowright':
+          player.x = Math.min(760, player.x + player.speed);
+          break;
+      }
+      updatePlayerPosition();
+    });
+
+    updateHUD();
+    updatePlayerPosition();
+    log("Game started. Use Arrow Keys to move, SPACE to shoot, R to reload, H to take damage, M for medkit, A for ammo.");
+  </script>
 </body>
 </html>
